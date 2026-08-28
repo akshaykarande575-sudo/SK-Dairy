@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Center group inside safe zone -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        
+        <!-- White badge container -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,26 C68,26 78,36 78,50 C78,66 54,82 54,82 C54,82 30,66 30,50 C30,36 40,26 54,26 Z" />
+            
+        <!-- Milk Drop & Grass motif -->
+        <path
+            android:fillColor="#2E7D32"
+            android:pathData="M54,34 C58,40 64,48 64,54 C64,60 59.5,65 54,65 C48.5,65 44,60 44,54 C44,48 50,40 54,34 Z" />
+            
+        <!-- Golden Star / Sparkle of Purity -->
+        <path
+            android:fillColor="#FFD54F"
+            android:pathData="M54,45 L55.5,50 L60,51 L56.5,54 L57.5,59 L54,56 L50.5,59 L51.5,54 L48,51 L52.5,50 Z" />
+            
+        <!-- Bottom Banner Base / Milk can base -->
+        <path
+            android:fillColor="#E8F5E9"
+            android:pathData="M43,69 L65,69 C67,69 68,70.5 67,72 L64,76 C63,77 61,77.5 59,77.5 L49,77.5 C47,77.5 45,77 44,76 L41,72 C40,70.5 41,69 43,69 Z" />
+    </group>
+</vector>
