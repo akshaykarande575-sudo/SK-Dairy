@@ -74,6 +74,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Share
+import com.example.ui.dialogs.TenDayBillingDialog
+import com.example.util.WhatsAppShareHelper
+
 @Composable
 fun MilkScreen(
   milkEntries: List<MilkEntry>,
@@ -82,6 +87,7 @@ fun MilkScreen(
   lang: AppLanguage,
   currentUserRole: MemberRole = MemberRole.ADMIN,
   currentUserName: String = "Akshay (Admin)",
+  farmName: String = "SK Dairy",
   defaultRate: String = "",
   onSetDefaultRate: (String) -> Unit = {},
   onClearAllMilk: () -> Unit = {},
@@ -92,6 +98,7 @@ fun MilkScreen(
   var showAddDialog by remember { mutableStateOf(false) }
   var showRateSettingDialog by remember { mutableStateOf(false) }
   var showClearConfirmDialog by remember { mutableStateOf(false) }
+  var showTenDayBillingDialog by remember { mutableStateOf(false) }
   var tempRateInput by remember { mutableStateOf(defaultRate) }
 
   val isMr = lang == AppLanguage.MARATHI
@@ -320,6 +327,68 @@ fun MilkScreen(
                 )
               }
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Action Buttons: 10-Day Bill & WhatsApp Share
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              // 10-Day Billing Button
+              Button(
+                onClick = { showTenDayBillingDialog = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                  .weight(1f)
+                  .testTag("open_10day_bill_button")
+              ) {
+                Icon(
+                  Icons.Default.ReceiptLong,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.primary,
+                  modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                  text = if (isMr) "१०-दिवसीय बिल" else "10-Day Bill",
+                  style = MaterialTheme.typography.labelMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+              }
+
+              // WhatsApp Share Monthly Report Button
+              Button(
+                onClick = {
+                  val text = WhatsAppShareHelper.generateMonthlySummaryWhatsAppText(
+                    farmName = farmName,
+                    monthSummary = monthSummary
+                  )
+                  WhatsAppShareHelper.shareViaWhatsApp(context, text)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                  .weight(1.2f)
+                  .testTag("share_whatsapp_milk_summary_button")
+              ) {
+                Icon(
+                  Icons.Default.Share,
+                  contentDescription = null,
+                  tint = Color.White,
+                  modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                  text = if (isMr) "व्हाट्सअॅप अहवाल" else "WhatsApp Report",
+                  style = MaterialTheme.typography.labelMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White
+                )
+              }
+            }
           }
         }
       }
@@ -492,6 +561,17 @@ fun MilkScreen(
         onAddMilk(date, cowId, cowName, session, liters, fat, snf, rate, dairyName)
         showAddDialog = false
       }
+    )
+  }
+
+  if (showTenDayBillingDialog) {
+    TenDayBillingDialog(
+      milkEntries = milkEntries,
+      year = monthSummary.year,
+      month = monthSummary.month,
+      farmName = farmName,
+      lang = lang,
+      onDismiss = { showTenDayBillingDialog = false }
     )
   }
 }

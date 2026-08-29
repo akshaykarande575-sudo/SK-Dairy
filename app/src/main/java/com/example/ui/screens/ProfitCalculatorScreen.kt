@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -58,16 +59,22 @@ import com.example.util.AppLanguage
 import com.example.util.AppStrings
 import com.example.util.DateUtils
 
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
+import com.example.util.WhatsAppShareHelper
+
 @Composable
 fun ProfitCalculatorScreen(
   monthSummary: MonthSummary,
   selectedMonthOffset: Int,
   expenses: List<ExpenseEntry>,
   lang: AppLanguage,
+  farmName: String = "SK Dairy",
   onMonthChange: (Int) -> Unit,
   onAddExpense: (date: Long, category: ExpenseCategory, amount: Double, description: String) -> Unit,
   onDeleteExpense: (ExpenseEntry) -> Unit
 ) {
+  val context = LocalContext.current
   var showAddExpenseDialog by remember { mutableStateOf(false) }
   val isMr = lang == AppLanguage.MARATHI
 
@@ -192,6 +199,44 @@ fun ProfitCalculatorScreen(
               style = MaterialTheme.typography.bodyMedium,
               color = Color.White.copy(alpha = 0.9f)
             )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // WhatsApp Share Profit/Loss Summary Button
+            Button(
+              onClick = {
+                val text = WhatsAppShareHelper.generateMonthlySummaryWhatsAppText(
+                  farmName = farmName,
+                  monthSummary = monthSummary
+                )
+                WhatsAppShareHelper.shareViaWhatsApp(context, text)
+              },
+              colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF25D366),
+                contentColor = Color.White
+              ),
+              shape = RoundedCornerShape(12.dp),
+              modifier = Modifier
+                .fillMaxWidth()
+                .testTag("share_whatsapp_profit_summary_button")
+            ) {
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+              ) {
+                Icon(
+                  Icons.Default.Share,
+                  contentDescription = null,
+                  modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                  text = if (isMr) "व्हाट्सअॅपवर नफा-तोटा अहवाल पाठवा" else "Share Profit Report on WhatsApp",
+                  style = MaterialTheme.typography.labelLarge,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
           }
         }
       }

@@ -249,6 +249,7 @@ fun DairyApp(viewModel: DairyViewModel) {
           lang = language,
           currentUserRole = farmProfile.currentUserRole,
           currentUserName = farmProfile.currentUserName,
+          farmName = farmProfile.farmName,
           defaultRate = defaultBaseRate,
           onSetDefaultRate = { viewModel.setDefaultBaseRate(it) },
           onClearAllMilk = { viewModel.clearAllMilkEntries() },
@@ -280,6 +281,7 @@ fun DairyApp(viewModel: DairyViewModel) {
           selectedMonthOffset = selectedMonthOffset,
           expenses = expenses,
           lang = language,
+          farmName = farmProfile.farmName,
           onMonthChange = { viewModel.selectMonthOffset(it) },
           onAddExpense = { date, category, amount, description ->
             viewModel.addExpense(date, category, amount, description)
