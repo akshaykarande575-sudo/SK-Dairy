@@ -134,6 +134,14 @@ class DairyRepository(
   suspend fun updateExpense(expense: ExpenseEntry) = expenseDao.updateExpense(expense)
   suspend fun deleteExpense(expense: ExpenseEntry) = expenseDao.deleteExpense(expense)
 
+  // Clear all local records on farm switch / reset
+  suspend fun clearAllLocalData() {
+    milkDao.deleteAllMilkEntries()
+    cowDao.deleteAllCows()
+    breedingDao.deleteAllRecords()
+    expenseDao.deleteAllExpenses()
+  }
+
   // Smart Alerts Engine Flow (Computed from Breeding records & current time)
   val farmAlerts: Flow<List<FarmAlert>> = combine(allBreedingRecords) { recordsArray ->
     val records = recordsArray[0]

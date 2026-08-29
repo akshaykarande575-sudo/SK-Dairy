@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
       milkDao = db.milkDao(),
       expenseDao = db.expenseDao()
     )
-    DairyViewModelFactory(repository)
+    DairyViewModelFactory(repository, applicationContext)
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {

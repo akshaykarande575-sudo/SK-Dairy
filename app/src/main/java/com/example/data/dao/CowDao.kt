@@ -29,6 +29,9 @@ interface CowDao {
   @Query("DELETE FROM cows WHERE id = :id")
   suspend fun deleteCowById(id: Long)
 
+  @Query("DELETE FROM cows")
+  suspend fun deleteAllCows()
+
   @Query("SELECT COUNT(*) FROM cows")
   fun getCowCount(): Flow<Int>
 }

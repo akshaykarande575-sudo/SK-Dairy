@@ -16,45 +16,17 @@ data class FarmMember(
 )
 
 data class FarmProfile(
-  val farmId: String = "SK-DAIRY-FARM-01",
-  val farmName: String = "SK Dairy Farm",
-  val inviteCode: String = "SK-7890",
-  val ownerName: String = "Akshay Karande",
-  val ownerContact: String = "akshaykarande575@gmail.com",
+  val isSetupCompleted: Boolean = false,
+  val farmId: String = "",
+  val farmName: String = "",
+  val inviteCode: String = "",
+  val ownerName: String = "",
+  val ownerContact: String = "",
   val currentUserRole: MemberRole = MemberRole.ADMIN,
-  val currentUserName: String = "Akshay Karande (Owner)",
-  val currentUserContact: String = "akshaykarande575@gmail.com",
+  val currentUserName: String = "",
+  val currentUserContact: String = "",
   val isOnlineSyncActive: Boolean = true,
-  val isRealtimeConnected: Boolean = true,
-  val lastSyncedTimestamp: Long = System.currentTimeMillis(),
-  val members: List<FarmMember> = listOf(
-    FarmMember(
-      id = "m1",
-      name = "अक्षय करांडे (Akshay)",
-      contact = "akshaykarande575@gmail.com",
-      role = MemberRole.ADMIN,
-      isCurrentUser = true
-    ),
-    FarmMember(
-      id = "m2",
-      name = "बाबा / वडील (Father)",
-      contact = "+91 98223 XXXXX",
-      role = MemberRole.EDITOR,
-      isCurrentUser = false
-    ),
-    FarmMember(
-      id = "m3",
-      name = "गोठा सहाय्यक (Farm Staff)",
-      contact = "+91 97654 XXXXX",
-      role = MemberRole.EDITOR,
-      isCurrentUser = false
-    ),
-    FarmMember(
-      id = "m4",
-      name = "कुटुंब सदस्य (Family Member)",
-      contact = "family@skdairy.com",
-      role = MemberRole.VIEWER,
-      isCurrentUser = false
-    )
-  )
+  val isRealtimeConnected: Boolean = false,
+  val lastSyncedTimestamp: Long = 0L,
+  val members: List<FarmMember> = emptyList()
 )

@@ -38,4 +38,7 @@ interface BreedingDao {
 
   @Query("DELETE FROM breeding_records WHERE id = :id")
   suspend fun deleteRecordById(id: Long)
+
+  @Query("DELETE FROM breeding_records")
+  suspend fun deleteAllRecords()
 }

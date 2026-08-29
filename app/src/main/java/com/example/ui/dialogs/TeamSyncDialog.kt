@@ -85,11 +85,13 @@ fun TeamSyncDialog(
   onRemoveMember: (memberId: String) -> Unit,
   onUpdateMemberRole: (memberId: String, newRole: MemberRole) -> Unit,
   onSwitchActiveUser: (FarmMember) -> Unit,
-  onJoinFarmCode: (code: String) -> Unit
+  onJoinFarmCode: (code: String) -> Unit,
+  onSwitchFarm: () -> Unit = {}
 ) {
   val isMr = lang == AppLanguage.MARATHI
   val context = LocalContext.current
   var selectedTab by remember { mutableIntStateOf(0) }
+  var showSwitchFarmConfirm by remember { mutableStateOf(false) }
 
   // Invite Form State
   var newMemberName by remember { mutableStateOf("") }
@@ -444,11 +446,59 @@ fun TeamSyncDialog(
       }
     },
     confirmButton = {
-      Button(onClick = onDismiss) {
-        Text(if (isMr) "पूर्ण झाले" else "Done")
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        TextButton(
+          onClick = { showSwitchFarmConfirm = true },
+          colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+          modifier = Modifier.testTag("switch_farm_button")
+        ) {
+          Text(if (isMr) "गोठा बदला / बाहेर पडा" else "Switch / Exit Farm")
+        }
+
+        Button(onClick = onDismiss) {
+          Text(if (isMr) "पूर्ण झाले" else "Done")
+        }
       }
     }
   )
+
+  if (showSwitchFarmConfirm) {
+    AlertDialog(
+      onDismissRequest = { showSwitchFarmConfirm = false },
+      title = {
+        Text(if (isMr) "गोठा बदलायची खात्री आहे का?" else "Switch / Disconnect Farm?")
+      },
+      text = {
+        Text(
+          if (isMr)
+            "तुम्ही सध्याच्या गोठ्यातून बाहेर पडाल आणि नवीन गोठा तयार करू शकता किंवा दुसऱ्या गोठा कोडने कनेक्ट होऊ शकता."
+          else
+            "You will disconnect from the current farm session. You can create a new farm or join using another farm code."
+        )
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            showSwitchFarmConfirm = false
+            onDismiss()
+            onSwitchFarm()
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
+          Text(if (isMr) "होय, गोठा बदला" else "Yes, Switch Farm")
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { showSwitchFarmConfirm = false }) {
+          Text(if (isMr) "रद्द करा" else "Cancel")
+        }
+      }
+    )
+  }
 }
 
 @Composable

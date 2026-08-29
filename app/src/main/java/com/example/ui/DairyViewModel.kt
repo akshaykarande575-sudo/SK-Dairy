@@ -45,9 +45,12 @@ data class MonthSummary(
   val entriesCount: Int
 )
 
-class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
+class DairyViewModel(
+  private val repository: DairyRepository,
+  context: Context
+) : ViewModel() {
 
-  private val cloudSyncService = CloudSyncService(repository, viewModelScope)
+  private val cloudSyncService = CloudSyncService(context, repository, viewModelScope)
 
   val language = MutableStateFlow(AppLanguage.MARATHI)
   val selectedMonthOffset = MutableStateFlow(0) // 0 = current month, -1 = last month, etc.
@@ -142,6 +145,10 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
 
   fun toggleLanguage() {
     language.value = if (language.value == AppLanguage.MARATHI) AppLanguage.ENGLISH else AppLanguage.MARATHI
+  }
+
+  fun setLanguage(lang: AppLanguage) {
+    language.value = lang
   }
 
   fun selectMonthOffset(offset: Int) {
@@ -278,6 +285,25 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
     cloudSyncService.joinOrSetFarmCode(code)
   }
 
+  // --- Farm Onboarding & Setup Actions ---
+  fun createNewFarm(farmName: String, ownerName: String, ownerContact: String = "") {
+    cloudSyncService.createNewFarm(farmName, ownerName, ownerContact)
+  }
+
+  fun joinExistingFarm(
+    farmCode: String,
+    userName: String,
+    userContact: String = "",
+    role: MemberRole = MemberRole.EDITOR,
+    onComplete: (Boolean, String) -> Unit = { _, _ -> }
+  ) {
+    cloudSyncService.joinExistingFarm(farmCode, userName, userContact, role, onComplete)
+  }
+
+  fun switchFarmOrLogout() {
+    cloudSyncService.switchFarmOrLogout()
+  }
+
   // --- Expense Actions ---
   fun addExpense(
     date: Long,
@@ -315,11 +341,14 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
   }
 }
 
-class DairyViewModelFactory(private val repository: DairyRepository) : ViewModelProvider.Factory {
+class DairyViewModelFactory(
+  private val repository: DairyRepository,
+  private val context: Context
+) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(DairyViewModel::class.java)) {
       @Suppress("UNCHECKED_CAST")
-      return DairyViewModel(repository) as T
+      return DairyViewModel(repository, context) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")
   }
