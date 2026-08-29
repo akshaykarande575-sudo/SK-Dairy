@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "508638698016",
+    "project_id": "sk-dairy-eb79c",
+    "storage_bucket": "sk-dairy-eb79c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508638698016:android:3b16be3a9d7248dbdc7a45",
+        "android_client_info": {
+          "package_name": "com.example.skdairy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUZEAOcVQzrFNHUCfbeHTR9w0QAaOKeZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
