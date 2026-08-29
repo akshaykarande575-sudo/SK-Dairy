@@ -60,6 +60,7 @@ import com.example.util.DateUtils
 fun AddMilkDialog(
   cows: List<Cow>,
   lang: AppLanguage,
+  defaultRate: String = "",
   onDismiss: () -> Unit,
   onSave: (date: Long, cowId: Long?, cowName: String, session: MilkSession, liters: Double, fat: Double, snf: Double, rate: Double, dairyName: String) -> Unit
 ) {
@@ -72,10 +73,10 @@ fun AddMilkDialog(
   var cowDropdownExpanded by remember { mutableStateOf(false) }
 
   var litersText by remember { mutableStateOf("") }
-  var fatText by remember { mutableStateOf("3.8") }
-  var snfText by remember { mutableStateOf("8.5") }
-  var rateText by remember { mutableStateOf("38.0") }
-  var dairyCenterText by remember { mutableStateOf(if (lang == AppLanguage.MARATHI) "गोकुळ दूध संकलन केंद्र" else "Dairy Collection Center") }
+  var fatText by remember { mutableStateOf("") }
+  var snfText by remember { mutableStateOf("") }
+  var rateText by remember { mutableStateOf(defaultRate) }
+  var dairyCenterText by remember { mutableStateOf("") }
 
   val isMr = lang == AppLanguage.MARATHI
 

@@ -24,6 +24,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+import com.example.data.CloudSyncService
+import com.example.data.model.FarmMember
+import com.example.data.model.FarmProfile
+import com.example.data.model.MemberRole
+
 data class MonthSummary(
   val year: Int,
   val month: Int,
@@ -42,8 +47,14 @@ data class MonthSummary(
 
 class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
 
+  private val cloudSyncService = CloudSyncService(repository, viewModelScope)
+
   val language = MutableStateFlow(AppLanguage.MARATHI)
   val selectedMonthOffset = MutableStateFlow(0) // 0 = current month, -1 = last month, etc.
+  val defaultBaseRate = MutableStateFlow<String>("") // Optional user-configured fixed base rate (e.g. ₹37)
+
+  val farmProfile: StateFlow<FarmProfile> = cloudSyncService.farmProfile
+  val syncStatusText: StateFlow<String> = cloudSyncService.syncStatusText
 
   val cows: StateFlow<List<Cow>> = repository.allCows
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -137,6 +148,10 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
     selectedMonthOffset.value = offset
   }
 
+  fun setDefaultBaseRate(rate: String) {
+    defaultBaseRate.value = rate.trim()
+  }
+
   // --- Cow Actions ---
   fun addCow(tagNumber: String, name: String, breed: String, status: CowStatus, avgMilk: Double, notes: String) {
     viewModelScope.launch {
@@ -210,21 +225,23 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
     ratePerLiter: Double,
     dairyCenter: String
   ) {
+    val currentUser = farmProfile.value.currentUserName
+    val entry = MilkEntry(
+      date = date,
+      cowId = cowId,
+      cowName = cowName.ifBlank { "गोठा एकूण दूध (All Herd)" },
+      session = session,
+      liters = liters,
+      fat = fat,
+      snf = snf,
+      ratePerLiter = ratePerLiter,
+      totalAmount = liters * ratePerLiter,
+      dairyCenterName = dairyCenter,
+      createdBy = currentUser
+    )
     viewModelScope.launch {
-      repository.insertMilkEntry(
-        MilkEntry(
-          date = date,
-          cowId = cowId,
-          cowName = cowName.ifBlank { "गोठा एकूण दूध (All Herd)" },
-          session = session,
-          liters = liters,
-          fat = fat,
-          snf = snf,
-          ratePerLiter = ratePerLiter,
-          totalAmount = liters * ratePerLiter,
-          dairyCenterName = dairyCenter
-        )
-      )
+      val insertedId = repository.insertMilkEntry(entry)
+      cloudSyncService.syncMilkEntryToCloud(entry.copy(id = insertedId))
     }
   }
 
@@ -232,6 +249,33 @@ class DairyViewModel(private val repository: DairyRepository) : ViewModel() {
     viewModelScope.launch {
       repository.deleteMilkEntry(entry)
     }
+  }
+
+  fun clearAllMilkEntries() {
+    viewModelScope.launch {
+      repository.clearAllMilkEntries()
+    }
+  }
+
+  // --- Multi-User & Team Management ---
+  fun inviteMember(name: String, contact: String, role: MemberRole) {
+    cloudSyncService.inviteMember(name, contact, role)
+  }
+
+  fun removeMember(memberId: String) {
+    cloudSyncService.removeMember(memberId)
+  }
+
+  fun updateMemberRole(memberId: String, newRole: MemberRole) {
+    cloudSyncService.updateMemberRole(memberId, newRole)
+  }
+
+  fun switchActiveUser(member: FarmMember) {
+    cloudSyncService.switchActiveUser(member)
+  }
+
+  fun joinFarmCode(code: String) {
+    cloudSyncService.joinOrSetFarmCode(code)
   }
 
   // --- Expense Actions ---

@@ -1,5 +1,5 @@
 {
-  "name": "Dairy Farm Manager",
+  "name": "SK Dairy",
   "description": "Dairy farm management app for daily milk records, cow AI breeding & pregnancy lifecycle tracking with 5-day delivery alerts, 3-month post-calving notifications, and monthly profit-loss calculator.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

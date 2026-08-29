@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.model.Cow
+import com.example.data.model.MemberRole
 import com.example.data.model.MilkEntry
 import com.example.data.model.MilkSession
 import com.example.ui.MonthSummary
@@ -55,17 +56,146 @@ import com.example.util.AppLanguage
 import com.example.util.AppStrings
 import com.example.util.DateUtils
 
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 @Composable
 fun MilkScreen(
   milkEntries: List<MilkEntry>,
   cows: List<Cow>,
   monthSummary: MonthSummary,
   lang: AppLanguage,
+  currentUserRole: MemberRole = MemberRole.ADMIN,
+  currentUserName: String = "Akshay (Admin)",
+  defaultRate: String = "",
+  onSetDefaultRate: (String) -> Unit = {},
+  onClearAllMilk: () -> Unit = {},
   onAddMilk: (date: Long, cowId: Long?, cowName: String, session: MilkSession, liters: Double, fat: Double, snf: Double, rate: Double, dairyName: String) -> Unit,
   onDeleteMilk: (MilkEntry) -> Unit
 ) {
+  val context = LocalContext.current
   var showAddDialog by remember { mutableStateOf(false) }
+  var showRateSettingDialog by remember { mutableStateOf(false) }
+  var showClearConfirmDialog by remember { mutableStateOf(false) }
+  var tempRateInput by remember { mutableStateOf(defaultRate) }
+
   val isMr = lang == AppLanguage.MARATHI
+  val canEdit = currentUserRole == MemberRole.ADMIN || currentUserRole == MemberRole.EDITOR
+
+  if (showRateSettingDialog) {
+    AlertDialog(
+      onDismissRequest = { showRateSettingDialog = false },
+      icon = { Icon(Icons.Default.Tune, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+      title = {
+        Text(
+          text = if (isMr) "ठरविक दूध दर सेटिंग (Default Rate)" else "Default Milk Rate Setting",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold
+        )
+      },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = if (isMr) "महिनाभरासाठी किंवा नेहमीसाठी ठरविक दर सेट करा (उदा. ₹37). हा दर नवीन नोंद करताना आपोआप भरेल, पण आवश्यकतेनुसार बदलता येईल."
+            else "Set a default fixed rate per liter (e.g. ₹37). It will automatically populate in new entries while remaining fully editable.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+          OutlinedTextField(
+            value = tempRateInput,
+            onValueChange = { tempRateInput = it },
+            label = { Text(if (isMr) "दर प्रति लिटर (₹)" else "Rate per Liter (₹)") },
+            placeholder = { Text("उदा. 37.0") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            modifier = Modifier
+              .fillMaxWidth()
+              .testTag("default_rate_input")
+          )
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            onSetDefaultRate(tempRateInput)
+            showRateSettingDialog = false
+          },
+          modifier = Modifier.testTag("save_default_rate_button")
+        ) {
+          Text(if (isMr) "दर सेव्ह करा" else "Save Rate")
+        }
+      },
+      dismissButton = {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+          if (tempRateInput.isNotBlank() || defaultRate.isNotBlank()) {
+            TextButton(
+              onClick = {
+                tempRateInput = ""
+                onSetDefaultRate("")
+                showRateSettingDialog = false
+              }
+            ) {
+              Text(if (isMr) "काढून टाका" else "Clear")
+            }
+          }
+          OutlinedButton(onClick = { showRateSettingDialog = false }) {
+            Text(AppStrings.cancel(lang))
+          }
+        }
+      }
+    )
+  }
+
+  if (showClearConfirmDialog) {
+    AlertDialog(
+      onDismissRequest = { showClearConfirmDialog = false },
+      icon = { Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+      title = {
+        Text(
+          text = if (isMr) "सर्व दूध नोंदी पुसायच्या आहेत का?" else "Clear All Milk Records?",
+          fontWeight = FontWeight.Bold
+        )
+      },
+      text = {
+        Text(
+          text = if (isMr) "यामुळे डेटाबेसमधील सर्व दूध नोंदी कायमच्या हटवल्या जातील आणि नवीन कोरी नोंद सुरू करता येईल."
+          else "This will remove all milk records from the database so you can start completely clean."
+        )
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            onClearAllMilk()
+            showClearConfirmDialog = false
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+          modifier = Modifier.testTag("confirm_clear_all_button")
+        ) {
+          Text(if (isMr) "हो, सर्व पुसा" else "Yes, Clear All")
+        }
+      },
+      dismissButton = {
+        OutlinedButton(onClick = { showClearConfirmDialog = false }) {
+          Text(AppStrings.cancel(lang))
+        }
+      }
+    )
+  }
 
   Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
@@ -194,6 +324,62 @@ fun MilkScreen(
         }
       }
 
+      // Quick Controls: Base Rate Setting & Clear Records Bar
+      item {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Surface(
+            onClick = {
+              tempRateInput = defaultRate
+              showRateSettingDialog = true
+            },
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.testTag("rate_setting_button")
+          ) {
+            Row(
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(
+                Icons.Default.Tune,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp)
+              )
+              Spacer(modifier = Modifier.width(6.dp))
+              Text(
+                text = if (defaultRate.isNotBlank())
+                  (if (isMr) "ठरविक दर: ₹$defaultRate/L" else "Base Rate: ₹$defaultRate/L")
+                else
+                  (if (isMr) "⚙️ ठरविक दर सेट करा (Base Rate)" else "⚙️ Set Default Base Rate"),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+          }
+
+          if (milkEntries.isNotEmpty()) {
+            TextButton(
+              onClick = { showClearConfirmDialog = true },
+              modifier = Modifier.testTag("clear_all_milk_button")
+            ) {
+              Icon(Icons.Default.DeleteOutline, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+              Spacer(modifier = Modifier.width(4.dp))
+              Text(
+                text = if (isMr) "नोंदी पुसा" else "Clear All",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.error
+              )
+            }
+          }
+        }
+      }
+
       // Section Header
       item {
         Row(
@@ -255,6 +441,7 @@ fun MilkScreen(
           MilkEntryCard(
             entry = entry,
             lang = lang,
+            canDelete = canEdit,
             onDelete = { onDeleteMilk(entry) }
           )
         }
@@ -263,9 +450,19 @@ fun MilkScreen(
 
     // Floating Action Button
     FloatingActionButton(
-      onClick = { showAddDialog = true },
-      containerColor = MaterialTheme.colorScheme.primary,
-      contentColor = MaterialTheme.colorScheme.onPrimary,
+      onClick = {
+        if (canEdit) {
+          showAddDialog = true
+        } else {
+          Toast.makeText(
+            context,
+            if (isMr) "वाचक (Viewer) मोडमध्ये नोंद करण्याची परवानगी नाही. ॲडमिनशी संपर्क साधा." else "Viewers cannot record milk. Contact farm admin.",
+            Toast.LENGTH_LONG
+          ).show()
+        }
+      },
+      containerColor = if (canEdit) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+      contentColor = if (canEdit) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier
         .align(Alignment.BottomEnd)
         .padding(16.dp)
@@ -275,10 +472,10 @@ fun MilkScreen(
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
-        Icon(Icons.Default.Add, contentDescription = "Add Milk Log")
+        Icon(if (canEdit) Icons.Default.Add else Icons.Default.Lock, contentDescription = "Add Milk Log")
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-          text = if (isMr) "दूध नोंद" else "Record Milk",
+          text = if (canEdit) (if (isMr) "दूध नोंद" else "Record Milk") else (if (isMr) "फक्त वाचक" else "View Only"),
           fontWeight = FontWeight.Bold
         )
       }
@@ -289,6 +486,7 @@ fun MilkScreen(
     AddMilkDialog(
       cows = cows,
       lang = lang,
+      defaultRate = defaultRate,
       onDismiss = { showAddDialog = false },
       onSave = { date, cowId, cowName, session, liters, fat, snf, rate, dairyName ->
         onAddMilk(date, cowId, cowName, session, liters, fat, snf, rate, dairyName)
@@ -302,6 +500,7 @@ fun MilkScreen(
 fun MilkEntryCard(
   entry: MilkEntry,
   lang: AppLanguage,
+  canDelete: Boolean = true,
   onDelete: () -> Unit
 ) {
   val isMr = lang == AppLanguage.MARATHI
@@ -355,15 +554,17 @@ fun MilkEntryCard(
         }
 
         // Delete button
-        IconButton(
-          onClick = onDelete,
-          modifier = Modifier.testTag("delete_milk_${entry.id}")
-        ) {
-          Icon(
-            Icons.Default.DeleteOutline,
-            contentDescription = "Delete entry",
-            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-          )
+        if (canDelete) {
+          IconButton(
+            onClick = onDelete,
+            modifier = Modifier.testTag("delete_milk_${entry.id}")
+          ) {
+            Icon(
+              Icons.Default.DeleteOutline,
+              contentDescription = "Delete entry",
+              tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+            )
+          }
         }
       }
 
@@ -422,13 +623,40 @@ fun MilkEntryCard(
         }
       }
 
-      if (entry.dairyCenterName.isNotBlank()) {
-        Text(
-          text = "📍 ${entry.dairyCenterName}",
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.outline,
-          modifier = Modifier.padding(top = 6.dp)
-        )
+      // Bottom Metadata: Dairy center & Author attribution
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(top = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        if (entry.dairyCenterName.isNotBlank()) {
+          Text(
+            text = "📍 ${entry.dairyCenterName}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline
+          )
+        } else {
+          Spacer(modifier = Modifier.width(1.dp))
+        }
+
+        if (entry.createdBy.isNotBlank()) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+              Icons.Default.CloudDone,
+              contentDescription = null,
+              tint = Color(0xFF4CAF50),
+              modifier = Modifier.size(12.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+              text = if (isMr) "नोंद: ${entry.createdBy}" else "By: ${entry.createdBy}",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.outline
+            )
+          }
+        }
       }
     }
   }

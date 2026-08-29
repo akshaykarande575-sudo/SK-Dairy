@@ -14,7 +14,7 @@ object AppStrings {
   fun tabAlerts(lang: AppLanguage) = if (lang == AppLanguage.MARATHI) "सूचना व अलर्ट" else "Alerts"
 
   // App Title
-  fun appTitle(lang: AppLanguage) = if (lang == AppLanguage.MARATHI) "गोपालन व दुग्ध व्यवस्थापक" else "Dairy Farm Manager"
+  fun appTitle(lang: AppLanguage) = "SK Dairy"
 
   // Buttons & Actions
   fun addMilk(lang: AppLanguage) = if (lang == AppLanguage.MARATHI) "+ दूध नोंद करा" else "+ Record Milk"

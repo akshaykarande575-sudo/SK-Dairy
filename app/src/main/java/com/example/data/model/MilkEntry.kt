@@ -21,5 +21,6 @@ data class MilkEntry(
   val ratePerLiter: Double = 0.0,
   val totalAmount: Double = (liters * ratePerLiter),
   val dairyCenterName: String = "",
+  val createdBy: String = "Akshay (Admin)",
   val createdAt: Long = System.currentTimeMillis()
 )

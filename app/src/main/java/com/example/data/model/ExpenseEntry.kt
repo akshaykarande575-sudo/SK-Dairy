@@ -20,5 +20,6 @@ data class ExpenseEntry(
   val category: ExpenseCategory,
   val amount: Double,
   val description: String = "",
+  val createdBy: String = "Akshay (Admin)",
   val createdAt: Long = System.currentTimeMillis()
 )

@@ -34,4 +34,7 @@ interface MilkDao {
 
   @Query("DELETE FROM milk_entries WHERE id = :id")
   suspend fun deleteMilkEntryById(id: Long)
+
+  @Query("DELETE FROM milk_entries")
+  suspend fun deleteAllMilkEntries()
 }

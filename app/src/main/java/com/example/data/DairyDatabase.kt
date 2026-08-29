@@ -24,7 +24,7 @@ import java.util.Calendar
 
 @Database(
   entities = [Cow::class, BreedingRecord::class, MilkEntry::class, ExpenseEntry::class],
-  version = 1,
+  version = 2,
   exportSchema = false
 )
 abstract class DairyDatabase : RoomDatabase() {
@@ -44,6 +44,7 @@ abstract class DairyDatabase : RoomDatabase() {
           DairyDatabase::class.java,
           "dairy_farm_database"
         )
+          .fallbackToDestructiveMigration()
           .addCallback(DairyDatabaseCallback(scope))
           .build()
         INSTANCE = instance
@@ -173,48 +174,7 @@ abstract class DairyDatabase : RoomDatabase() {
           )
         )
 
-        // 3. Seed Milk Entries for Past 7 Days
-        for (i in 0..6) {
-          val dayMillis = today - (i.toLong() * 24 * 60 * 60 * 1000)
-          
-          // Morning Milk Entry
-          val mMorningLiters = 26.0 + (i % 3) * 1.5
-          val mFat = 3.9 + (i % 2) * 0.1
-          val mRate = 38.0
-          milkDao.insertMilkEntry(
-            MilkEntry(
-              date = dayMillis,
-              cowName = "गोठा एकूण दूध (All Herd)",
-              session = MilkSession.MORNING,
-              liters = mMorningLiters,
-              fat = mFat,
-              snf = 8.6,
-              ratePerLiter = mRate,
-              totalAmount = mMorningLiters * mRate,
-              dairyCenterName = "गोकुळ दूध संकलन केंद्र",
-              createdAt = dayMillis
-            )
-          )
-
-          // Evening Milk Entry
-          val mEveLiters = 22.0 + (i % 2) * 1.0
-          val eFat = 4.1
-          val eRate = 39.0
-          milkDao.insertMilkEntry(
-            MilkEntry(
-              date = dayMillis,
-              cowName = "गोठा एकूण दूध (All Herd)",
-              session = MilkSession.EVENING,
-              liters = mEveLiters,
-              fat = eFat,
-              snf = 8.7,
-              ratePerLiter = eRate,
-              totalAmount = mEveLiters * eRate,
-              dairyCenterName = "गोकुळ दूध संकलन केंद्र",
-              createdAt = dayMillis + (8 * 60 * 60 * 1000)
-            )
-          )
-        }
+        // 3. Milk entries are not pre-seeded so the milk log starts completely clean for the user.
 
         // 4. Initial Month Expenses (Feed, Vet, Misc)
         expenseDao.insertExpense(

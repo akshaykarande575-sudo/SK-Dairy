@@ -125,6 +125,7 @@ class DairyRepository(
   suspend fun insertMilkEntry(entry: MilkEntry): Long = milkDao.insertMilkEntry(entry)
   suspend fun updateMilkEntry(entry: MilkEntry) = milkDao.updateMilkEntry(entry)
   suspend fun deleteMilkEntry(entry: MilkEntry) = milkDao.deleteMilkEntry(entry)
+  suspend fun clearAllMilkEntries() = milkDao.deleteAllMilkEntries()
 
   // Expenses
   val allExpenses: Flow<List<ExpenseEntry>> = expenseDao.getAllExpenses()

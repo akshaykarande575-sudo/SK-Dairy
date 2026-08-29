@@ -1,12 +1,22 @@
 package com.example.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CurrencyRupee
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pets
@@ -30,11 +40,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.model.MemberRole
+import com.example.ui.dialogs.TeamSyncDialog
 import com.example.ui.screens.AlertsScreen
 import com.example.ui.screens.BreedingScreen
 import com.example.ui.screens.CowsScreen
@@ -47,6 +63,7 @@ import com.example.util.AppStrings
 @Composable
 fun DairyApp(viewModel: DairyViewModel) {
   var currentTab by remember { mutableStateOf(0) }
+  var showTeamSyncDialog by remember { mutableStateOf(false) }
 
   val language by viewModel.language.collectAsStateWithLifecycle()
   val cows by viewModel.cows.collectAsStateWithLifecycle()
@@ -56,12 +73,51 @@ fun DairyApp(viewModel: DairyViewModel) {
   val farmAlerts by viewModel.farmAlerts.collectAsStateWithLifecycle()
   val monthSummary by viewModel.monthlySummary.collectAsStateWithLifecycle()
   val selectedMonthOffset by viewModel.selectedMonthOffset.collectAsStateWithLifecycle()
+  val defaultBaseRate by viewModel.defaultBaseRate.collectAsStateWithLifecycle()
+  val farmProfile by viewModel.farmProfile.collectAsStateWithLifecycle()
 
   val isMr = language == AppLanguage.MARATHI
 
   Scaffold(
     topBar = {
       CenterAlignedTopAppBar(
+        navigationIcon = {
+          // Cloud Realtime & Team Member Badge in Top Bar
+          Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+            modifier = Modifier
+              .padding(start = 8.dp)
+              .clickable { showTeamSyncDialog = true }
+              .testTag("team_sync_top_badge")
+          ) {
+            Row(
+              modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(8.dp)
+                  .clip(CircleShape)
+                  .background(Color(0xFF4CAF50))
+              )
+              Spacer(modifier = Modifier.width(4.dp))
+              Icon(
+                Icons.Default.Group,
+                contentDescription = "Farm Team",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(15.dp)
+              )
+              Spacer(modifier = Modifier.width(4.dp))
+              Text(
+                text = "${farmProfile.members.size}",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+              )
+            }
+          }
+        },
         title = {
           Text(
             text = AppStrings.appTitle(language),
@@ -191,6 +247,11 @@ fun DairyApp(viewModel: DairyViewModel) {
           cows = cows,
           monthSummary = monthSummary,
           lang = language,
+          currentUserRole = farmProfile.currentUserRole,
+          currentUserName = farmProfile.currentUserName,
+          defaultRate = defaultBaseRate,
+          onSetDefaultRate = { viewModel.setDefaultBaseRate(it) },
+          onClearAllMilk = { viewModel.clearAllMilkEntries() },
           onAddMilk = { date, cowId, cowName, session, liters, fat, snf, rate, dairyName ->
             viewModel.addMilkEntry(date, cowId, cowName, session, liters, fat, snf, rate, dairyName)
           },
@@ -242,5 +303,18 @@ fun DairyApp(viewModel: DairyViewModel) {
         )
       }
     }
+  }
+
+  if (showTeamSyncDialog) {
+    TeamSyncDialog(
+      farmProfile = farmProfile,
+      lang = language,
+      onDismiss = { showTeamSyncDialog = false },
+      onInviteMember = { name, contact, role -> viewModel.inviteMember(name, contact, role) },
+      onRemoveMember = { viewModel.removeMember(it) },
+      onUpdateMemberRole = { id, role -> viewModel.updateMemberRole(id, role) },
+      onSwitchActiveUser = { viewModel.switchActiveUser(it) },
+      onJoinFarmCode = { viewModel.joinFarmCode(it) }
+    )
   }
 }
