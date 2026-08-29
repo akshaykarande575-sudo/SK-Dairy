@@ -309,6 +309,7 @@ fun DairyApp(viewModel: DairyViewModel) {
           currentUserRole = farmProfile.currentUserRole,
           currentUserName = farmProfile.currentUserName,
           farmName = farmProfile.farmName,
+          farmCode = farmProfile.inviteCode.ifBlank { farmProfile.farmId },
           defaultRate = defaultBaseRate,
           onSetDefaultRate = { viewModel.setDefaultBaseRate(it) },
           onClearAllMilk = { viewModel.clearAllMilkEntries() },

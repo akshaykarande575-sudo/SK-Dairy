@@ -59,14 +59,22 @@ class DairyViewModel(
   val farmProfile: StateFlow<FarmProfile> = cloudSyncService.farmProfile
   val syncStatusText: StateFlow<String> = cloudSyncService.syncStatusText
 
-  val cows: StateFlow<List<Cow>> = repository.allCows
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+  val cows: StateFlow<List<Cow>> = combine(
+    cloudSyncService.realtimeCows,
+    repository.allCows
+  ) { cloudList, roomList ->
+    if (cloudList.isNotEmpty()) cloudList else roomList
+  }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
   val breedingRecords: StateFlow<List<BreedingRecord>> = repository.allBreedingRecords
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-  val milkEntries: StateFlow<List<MilkEntry>> = repository.allMilkEntries
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+  val milkEntries: StateFlow<List<MilkEntry>> = combine(
+    cloudSyncService.realtimeMilkEntries,
+    repository.allMilkEntries
+  ) { cloudList, roomList ->
+    if (cloudList.isNotEmpty()) cloudList else roomList
+  }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
   val expenses: StateFlow<List<ExpenseEntry>> = repository.allExpenses
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -162,22 +170,23 @@ class DairyViewModel(
   // --- Cow Actions ---
   fun addCow(tagNumber: String, name: String, breed: String, status: CowStatus, avgMilk: Double, notes: String) {
     viewModelScope.launch {
-      repository.insertCow(
-        Cow(
-          tagNumber = tagNumber.trim(),
-          name = name.trim(),
-          breed = breed.trim(),
-          status = status,
-          dailyAvgMilk = avgMilk,
-          notes = notes.trim()
-        )
+      val cow = Cow(
+        tagNumber = tagNumber.trim(),
+        name = name.trim(),
+        breed = breed.trim(),
+        status = status,
+        dailyAvgMilk = avgMilk,
+        notes = notes.trim()
       )
+      val insertedId = repository.insertCow(cow)
+      cloudSyncService.syncCowToCloud(cow.copy(id = insertedId))
     }
   }
 
   fun deleteCow(cow: Cow) {
     viewModelScope.launch {
       repository.deleteCow(cow)
+      cloudSyncService.deleteCowFromCloud(cow)
     }
   }
 
@@ -255,6 +264,7 @@ class DairyViewModel(
   fun deleteMilkEntry(entry: MilkEntry) {
     viewModelScope.launch {
       repository.deleteMilkEntry(entry)
+      cloudSyncService.deleteMilkEntryFromCloud(entry)
     }
   }
 

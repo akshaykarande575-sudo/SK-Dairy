@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -88,6 +89,7 @@ fun MilkScreen(
   currentUserRole: MemberRole = MemberRole.ADMIN,
   currentUserName: String = "Akshay (Admin)",
   farmName: String = "SK Dairy",
+  farmCode: String = "",
   defaultRate: String = "",
   onSetDefaultRate: (String) -> Unit = {},
   onClearAllMilk: () -> Unit = {},
@@ -210,8 +212,63 @@ fun MilkScreen(
         .fillMaxSize()
         .testTag("milk_screen_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
+      verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+      // Realtime Cloud Synced Live Banner
+      item {
+        Surface(
+          shape = RoundedCornerShape(12.dp),
+          color = Color(0xFFE8F5E9),
+          border = BorderStroke(1.dp, Color(0xFFA5D6A7)),
+          modifier = Modifier
+            .fillMaxWidth()
+            .testTag("cloud_sync_banner")
+        ) {
+          Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(8.dp)
+                  .background(Color(0xFF2E7D32), CircleShape)
+              )
+              Icon(
+                Icons.Default.CloudDone,
+                contentDescription = "Cloud Synced",
+                tint = Color(0xFF2E7D32),
+                modifier = Modifier.size(18.dp)
+              )
+              Text(
+                text = if (isMr) "Cloud Synced (क्लाऊड सिंक सुरू आहे)" else "Cloud Synced (क्लाऊड सिंक सुरू आहे)",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1B5E20)
+              )
+            }
+            if (farmCode.isNotBlank()) {
+              Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = Color(0xFFC8E6C9)
+              ) {
+                Text(
+                  text = farmCode,
+                  style = MaterialTheme.typography.labelSmall,
+                  fontWeight = FontWeight.Bold,
+                  color = Color(0xFF1B5E20),
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+              }
+            }
+          }
+        }
+      }
+
       // Month Overview Card
       item {
         Card(
