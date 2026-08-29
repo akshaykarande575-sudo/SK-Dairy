@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-  namespace = "com.example.skdairy"
+  namespace = "com.example"
   compileSdk = 36
 
   defaultConfig {
